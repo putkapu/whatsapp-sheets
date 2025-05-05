@@ -18,6 +18,8 @@ class BaseConfig:
     # Google Sheets
     GOOGLE_CREDENTIALS_PATH = os.environ.get('GOOGLE_CREDENTIALS_PATH')
     GOOGLE_SPREADSHEET_ID = os.environ.get('GOOGLE_SPREADSHEET_ID')
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
     
     # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
@@ -31,6 +33,8 @@ class BaseConfig:
             'GOOGLE_CREDENTIALS_PATH': cls.GOOGLE_CREDENTIALS_PATH,
             'GOOGLE_SPREADSHEET_ID': cls.GOOGLE_SPREADSHEET_ID,
             'SQLALCHEMY_DATABASE_URI': cls.SQLALCHEMY_DATABASE_URI,
+            'GOOGLE_CLIENT_ID': cls.GOOGLE_CLIENT_ID,
+            'GOOGLE_CLIENT_SECRET': cls.GOOGLE_CLIENT_SECRET,
         }
         
         missing_vars = [var for var, value in required_vars.items() if not value]
@@ -51,6 +55,8 @@ class DevelopmentConfig(BaseConfig):
         'GOOGLE_CREDENTIALS_PATH', 
         'credentials.json'
     )
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
 
 class TestingConfig(BaseConfig):
     """Testing configuration."""
@@ -58,6 +64,8 @@ class TestingConfig(BaseConfig):
     DEBUG = True
     SECRET_KEY = 'test-key'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    GOOGLE_CLIENT_ID = 'test-client-id'
+    GOOGLE_CLIENT_SECRET = 'test-client-secret'
 
 class ProductionConfig(BaseConfig):
     """Production configuration."""

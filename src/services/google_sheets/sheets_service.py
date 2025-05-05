@@ -4,6 +4,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import logging
 
+from src.config.settings import get_config
+Config = get_config()
+
 class GoogleSheetsService:
     def __init__(self, token: str, spreadsheet_id: str):
         """
@@ -18,7 +21,12 @@ class GoogleSheetsService:
         
         try:
             credentials = Credentials.from_authorized_user_info(
-                info={'token': token},
+            info={
+                "refresh_token": token,
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "client_id": Config.GOOGLE_CLIENT_ID, 
+                "client_secret": Config.GOOGLE_CLIENT_SECRET
+            },
                 scopes=['https://www.googleapis.com/auth/spreadsheets']
             )
             self.service = build('sheets', 'v4', credentials=credentials)
@@ -49,8 +57,7 @@ class GoogleSheetsService:
                 data['date'],
                 data['price'],
                 data['product'],
-                data['category'],
-                'Sim' if data.get('is_split', False) else 'Não'
+                data['category']
             ]]
             
             body = {
