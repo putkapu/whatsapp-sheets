@@ -1,34 +1,38 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from google.oauth2.credentials import Credentials
-from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import logging
 
 class GoogleSheetsService:
-    def __init__(self, credentials_path: str, spreadsheet_id: str):
+    def __init__(self, token: str, spreadsheet_id: str):
         """
         Initialize the Google Sheets service.
         
         Args:
-            credentials_path: Path to the service account credentials JSON file
+            token: Token for authentication
             spreadsheet_id: ID of the Google Spreadsheet to use
         """
-        self.spreadsheet_id = spreadsheet_id
-        self.credentials = service_account.Credentials.from_service_account_file(
-            credentials_path,
-            scopes=['https://www.googleapis.com/auth/spreadsheets']
-        )
-        self.service = build('sheets', 'v4', credentials=self.credentials)
-        self.sheet = self.service.spreadsheets()
         self.logger = logging.getLogger(__name__)
+        self.spreadsheet_id = spreadsheet_id
+        
+        try:
+            credentials = Credentials.from_authorized_user_info(
+                info={'token': token},
+                scopes=['https://www.googleapis.com/auth/spreadsheets']
+            )
+            self.service = build('sheets', 'v4', credentials=credentials)
+            self.sheet = self.service.spreadsheets()
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Google Sheets service: {str(e)}")
+            raise
 
-    def append_expense(self, expense_data: Dict[str, Any]) -> bool:
+    def append_expense(self, data: Dict[str, Any]) -> bool:
         """
         Append an expense to the spreadsheet.
         
         Args:
-            expense_data: Dictionary containing expense data
+            data: Dictionary containing expense data
                 {
                     'date': str,
                     'price': float,
@@ -41,32 +45,30 @@ class GoogleSheetsService:
             bool: True if successful, False otherwise
         """
         try:
-            # Format the row data
-            row = [
-                expense_data['date'],
-                str(expense_data['price']),
-                expense_data['product'],
-                expense_data['category'],
-                'Sim' if expense_data.get('is_split', False) else 'Não'
-            ]
-
-            # Prepare the request
+            values = [[
+                data['date'],
+                data['price'],
+                data['product'],
+                data['category'],
+                'Sim' if data.get('is_split', False) else 'Não'
+            ]]
+            
             body = {
-                'values': [row]
+                'values': values,
+                'majorDimension': 'ROWS'
             }
-
-            # Append the row
-            result = self.sheet.values().append(
+            
+            self.sheet.values().append(
                 spreadsheetId=self.spreadsheet_id,
-                range='Expenses!A:E',  # Assuming we have a sheet named 'Expenses'
-                valueInputOption='RAW',
+                range='Sheet1!A:E',
+                valueInputOption='USER_ENTERED',
                 insertDataOption='INSERT_ROWS',
                 body=body
             ).execute()
-
-            self.logger.info(f"Successfully appended expense: {expense_data}")
+            
+            self.logger.info(f"Successfully appended expense: {data}")
             return True
-
+            
         except HttpError as error:
             self.logger.error(f"Error appending expense: {error}")
             return False
