@@ -10,3 +10,7 @@ class Config:
     # Google Sheets Configuration
     GOOGLE_CREDENTIALS_PATH = os.environ.get('GOOGLE_CREDENTIALS_PATH', 'credentials.json')
     GOOGLE_SPREADSHEET_ID = os.environ.get('GOOGLE_SPREADSHEET_ID', '') 
+
+    # Database Configuration
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///whatssheet.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
