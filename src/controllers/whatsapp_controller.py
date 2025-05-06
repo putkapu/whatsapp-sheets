@@ -16,13 +16,11 @@ class WhatsAppController:
         incoming = request.values.get('Body', '').strip()
         cellphone_number = request.values.get('From', '').strip().split(':')[-1]
 
-        # Validate user
         is_valid, error_message, user = self.user_service.validate_user(cellphone_number)
         if not is_valid:
             twiml, mimetype = self.view.format_twiml_response(error_message)
             return Response(twiml, mimetype=mimetype)
 
-        # Process expense
         is_success, message, expense = self.expense_service.process_expense(incoming, user)
         if is_success:
             message = self.view.format_success(expense)

@@ -24,9 +24,9 @@ class WhatsAppView:
         return (
             f"Gravado ✔️\n"
             f"Data: {expense.date}\n"
-            f"Preço: {expense.price}\n"
             f"Produto: {expense.product}\n"
-            f"Categoria: {expense.category}"
+            f"Categoria: {expense.category}\n"
+            f"Preço: {expense.price}"
         )
 
     @staticmethod

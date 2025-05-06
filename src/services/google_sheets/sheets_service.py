@@ -8,6 +8,10 @@ from src.config.settings import get_config
 Config = get_config()
 
 class GoogleSheetsService:
+    HEADER = [['Data', 'Descrição', 'Categoria', 'Valor']]
+    RANGE = 'Sheet1!A:E'
+    HEADER_RANGE = 'Sheet1!A1:E'
+
     def __init__(self, token: str, spreadsheet_id: str):
         """
         Initialize the Google Sheets service.
@@ -53,11 +57,14 @@ class GoogleSheetsService:
             bool: True if successful, False otherwise
         """
         try:
+            if not self.header_exists():
+                self.write_header()
+
             values = [[
                 data['date'],
-                data['price'],
                 data['product'],
-                data['category']
+                data['category'],
+                data['price']
             ]]
             
             body = {
@@ -67,7 +74,7 @@ class GoogleSheetsService:
             
             self.sheet.values().append(
                 spreadsheetId=self.spreadsheet_id,
-                range='Sheet1!A:E',
+                range=self.RANGE,
                 valueInputOption='USER_ENTERED',
                 insertDataOption='INSERT_ROWS',
                 body=body
@@ -80,6 +87,22 @@ class GoogleSheetsService:
             self.logger.error(f"Error appending expense: {error}")
             return False
 
+    def header_exists(self) -> bool:
+        existing_values = self.sheet.values().get(
+            spreadsheetId=self.spreadsheet_id,
+            range=self.HEADER_RANGE
+        ).execute().get('values', [])
+        return bool(existing_values)
+
+    def write_header(self) -> None:
+        self.sheet.values().append(
+            spreadsheetId=self.spreadsheet_id,
+            range=self.HEADER_RANGE,
+            valueInputOption='USER_ENTERED',
+            insertDataOption='INSERT_ROWS',
+            body={'values': self.HEADER}
+        ).execute()
+
     def get_all_expenses(self) -> List[Dict[str, Any]]:
         """
         Get all expenses from the spreadsheet.
@@ -90,20 +113,19 @@ class GoogleSheetsService:
         try:
             result = self.sheet.values().get(
                 spreadsheetId=self.spreadsheet_id,
-                range='Expenses!A2:E'  # Skip header row
+                range='Expenses!A2:E'
             ).execute()
 
             values = result.get('values', [])
             expenses = []
 
             for row in values:
-                if len(row) >= 5:  # Ensure we have all required fields
+                if len(row) >= 5:
                     expense = {
-                        'date': row[0],
-                        'price': float(row[1]),
-                        'product': row[2],
-                        'category': row[3],
-                        'is_split': row[4].lower() == 'sim'
+                        'Date': row[0],
+                        'Product': row[2],
+                        'Category': row[3],
+                        'Price': float(row[1])
                     }
                     expenses.append(expense)
 

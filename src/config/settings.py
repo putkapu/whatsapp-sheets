@@ -57,6 +57,7 @@ class DevelopmentConfig(BaseConfig):
     )
     GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
     GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+    GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI')
 
 class TestingConfig(BaseConfig):
     """Testing configuration."""
@@ -66,7 +67,8 @@ class TestingConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     GOOGLE_CLIENT_ID = 'test-client-id'
     GOOGLE_CLIENT_SECRET = 'test-client-secret'
-
+    GOOGLE_REDIRECT_URI = 'http://localhost:5000/oauth2callback'
+    
 class ProductionConfig(BaseConfig):
     """Production configuration."""
     LOG_LEVEL = logging.WARNING
