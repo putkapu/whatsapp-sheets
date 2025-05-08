@@ -10,6 +10,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=False)
     phone_number = Column(String(20), unique=True, nullable=False)
     google_sheets_id = Column(String(100), nullable=True)
     google_token = Column(String(2000), nullable=True)

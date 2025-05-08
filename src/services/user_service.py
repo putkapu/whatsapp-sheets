@@ -2,6 +2,7 @@ from src.config.database import SessionLocal
 from src.models.user import User
 from typing import Tuple, Optional
 import logging
+from werkzeug.security import generate_password_hash
 
 
 class UserService:
@@ -53,3 +54,35 @@ class UserService:
             return False, "Erro ao validar usuário.", None
         finally:
             db.close()
+
+    def signup(self, name: str, phone_number: str, password: str, google_sheets_id: str) -> Tuple[bool, str, Optional[User]]:
+        db = SessionLocal()
+        try:
+            existing_user = db.query(User).filter(User.phone_number == phone_number).first()
+            if existing_user:
+                return False, "Usuário já existe.", None
+            user = User(name=name, phone_number=phone_number, password=generate_password_hash(password), google_sheets_id=google_sheets_id)
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            return True, "Usuário criado com sucesso.", user.id
+        except Exception as e:
+            self.logger.error(f"Error creating user: {str(e)}")
+            db.rollback()
+            return False, "Erro ao criar usuário.", None
+        finally:
+            db.close()
+
+    def update_google_token(self, user_id: int, google_token: str) -> Tuple[bool, str, Optional[User]]:
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return False, "Usuário não encontrado.", None
+            user.google_token = google_token
+            db.commit()
+            db.refresh(user)
+            return True, "Token do Google Sheets atualizado com sucesso.", user
+        except Exception as e:
+            self.logger.error(f"Error updating Google Sheets token: {str(e)}")
+            db.rollback()
