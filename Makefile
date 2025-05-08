@@ -24,3 +24,13 @@ format-check:
 
 pylint:
 	. venv/bin/activate && pylint src app.py 
+
+docker-build:
+	docker build -t whatssheet:latest .
+
+docker-run:
+	docker run -d --env-file .env -p $(shell grep -E '^PORT=' .env | cut -d '=' -f2):$(shell grep -E '^PORT=' .env | cut -d '=' -f2) --name whatssheet whatssheet:latest
+
+docker-clean:
+	docker stop whatssheet && docker rm whatssheet
+

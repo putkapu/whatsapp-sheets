@@ -24,6 +24,7 @@ WhatsSheet/
 │       └── whatsapp_view.py
 ├── app.py
 ├── requirements.txt
+├── Makefile
 └── README.md
 ```
 
@@ -50,6 +51,20 @@ source venv/bin/activate  # On Linux/Mac
 ```bash
 pip install -r requirements.txt
 ```
+
+## Makefile Commands
+
+You can use the Makefile to simplify common development tasks:
+
+- `make venv` – Create a virtual environment
+- `make install` – Install dependencies into the virtual environment
+- `make run-dev` – Run the Flask app in development mode
+- `make migrate` – Apply database migrations using Alembic
+- `make clean` – Remove virtual environment, cache, and database files
+- `make lint` – Run pylint on the codebase
+- `make format` – Format code with Black
+- `make format-check` – Check code formatting with Black
+- `make pylint` – Run pylint on the codebase
 
 ## Usage
 
