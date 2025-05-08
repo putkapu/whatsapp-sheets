@@ -34,3 +34,12 @@ docker-run:
 docker-clean:
 	docker stop whatssheet && docker rm whatssheet
 
+docker-migrate:
+	docker exec -it whatssheet alembic upgrade head
+
+ngrok-start:
+	ngrok http $(shell grep -E '^PORT=' .env | cut -d '=' -f2) > /dev/null 2>&1 & echo $$! > ngrok.pid && sleep 2 && echo "ngrok started with PID $$(cat ngrok.pid)" && curl -s http://127.0.0.1:4040/api/tunnels | grep -o '"public_url":"[^"]*"' | head -n 1 | sed 's/"public_url":"//;s/"//'
+
+ngrok-stop:
+	kill $$(cat ngrok.pid) && rm ngrok.pid && echo "ngrok stopped"
+

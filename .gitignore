@@ -36,4 +36,10 @@ htmlcov/
 .coverage.*
 .cache
 coverage.xml
-*.cover 
+*.cover
+
+# ngrok process ID file
+ngrok.pid
+
+# Database file
+*.db
