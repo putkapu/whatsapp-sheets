@@ -1,11 +1,12 @@
 from flask import Blueprint, current_app
 from src.controllers.whatsapp_controller import WhatsAppController
 
-whatsapp_bp = Blueprint('whatsapp', __name__)
+whatsapp_bp = Blueprint("whatsapp", __name__)
 
 whatsapp_controller = WhatsAppController()
 
-@whatsapp_bp.route('/whatsapp', methods=['POST'])
+
+@whatsapp_bp.route("/whatsapp", methods=["POST"])
 def whatsapp_webhook():
     """Handle WhatsApp webhook endpoint."""
     try:
@@ -15,4 +16,4 @@ def whatsapp_webhook():
         return response
     except Exception as e:
         current_app.logger.error(f"Error processing WhatsApp webhook: {str(e)}")
-        raise 
+        raise

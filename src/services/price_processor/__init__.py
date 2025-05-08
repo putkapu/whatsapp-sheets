@@ -1,3 +1,3 @@
 from .processor import PriceProcessorService
 
-__all__ = ['PriceProcessorService'] 
+__all__ = ["PriceProcessorService"]

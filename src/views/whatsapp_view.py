@@ -1,6 +1,7 @@
 from typing import Tuple
 from src.models.expense import Expense
 
+
 class WhatsAppView:
     @staticmethod
     def format_invalid_format() -> str:
@@ -36,4 +37,4 @@ class WhatsAppView:
 <Response>
     <Message>{message}</Message>
 </Response>"""
-        return twiml, 'application/xml' 
+        return twiml, "application/xml"
