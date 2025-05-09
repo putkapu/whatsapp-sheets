@@ -2,17 +2,12 @@ from typing import List, Dict, Any, Optional
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import logging
-
-from src.config.settings import get_config
-
-Config = get_config()
-
+from flask import current_app
 
 class GoogleSheetsService:
     HEADER = [["Data", "Descrição", "Categoria", "Valor"]]
-    RANGE = "Sheet1!A:E"
-    HEADER_RANGE = "Sheet1!A1:E"
+    RANGE = "A:E"
+    HEADER_RANGE = "A1:E"
 
     def __init__(self, token: str, spreadsheet_id: str):
         """
@@ -22,7 +17,6 @@ class GoogleSheetsService:
             token: Token for authentication
             spreadsheet_id: ID of the Google Spreadsheet to use
         """
-        self.logger = logging.getLogger(__name__)
         self.spreadsheet_id = spreadsheet_id
 
         try:
@@ -30,15 +24,15 @@ class GoogleSheetsService:
                 info={
                     "refresh_token": token,
                     "token_uri": "https://oauth2.googleapis.com/token",
-                    "client_id": Config.GOOGLE_CLIENT_ID,
-                    "client_secret": Config.GOOGLE_CLIENT_SECRET,
+                    "client_id": current_app.config['GOOGLE_CLIENT_ID'],
+                    "client_secret": current_app.config['GOOGLE_CLIENT_SECRET']
                 },
                 scopes=["https://www.googleapis.com/auth/spreadsheets"],
             )
             self.service = build("sheets", "v4", credentials=credentials)
             self.sheet = self.service.spreadsheets()
         except Exception as e:
-            self.logger.error(f"Failed to initialize Google Sheets service: {str(e)}")
+            current_app.logger.error(f"Failed to initialize Google Sheets service: {str(e)}")
             raise
 
     def append_expense(self, data: Dict[str, Any]) -> bool:
@@ -74,11 +68,11 @@ class GoogleSheetsService:
                 body=body,
             ).execute()
 
-            self.logger.info(f"Successfully appended expense: {data}")
+            current_app.logger.info(f"Successfully appended expense: {data}")
             return True
 
         except HttpError as error:
-            self.logger.error(f"Error appending expense: {error}")
+            current_app.logger.error(f"Error appending expense: {error}")
             return False
 
     def header_exists(self) -> bool:
@@ -109,7 +103,7 @@ class GoogleSheetsService:
         try:
             result = (
                 self.sheet.values()
-                .get(spreadsheetId=self.spreadsheet_id, range="Expenses!A2:E")
+                .get(spreadsheetId=self.spreadsheet_id, range="A2:E")
                 .execute()
             )
 
@@ -129,5 +123,5 @@ class GoogleSheetsService:
             return expenses
 
         except HttpError as error:
-            self.logger.error(f"Error getting expenses: {error}")
+            current_app.logger.error(f"Error getting expenses: {error}")
             return []

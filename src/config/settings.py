@@ -20,6 +20,7 @@ class BaseConfig:
     GOOGLE_SPREADSHEET_ID = os.environ.get("GOOGLE_SPREADSHEET_ID")
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+    GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI")
 
     # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
@@ -35,6 +36,7 @@ class BaseConfig:
             "SQLALCHEMY_DATABASE_URI": cls.SQLALCHEMY_DATABASE_URI,
             "GOOGLE_CLIENT_ID": cls.GOOGLE_CLIENT_ID,
             "GOOGLE_CLIENT_SECRET": cls.GOOGLE_CLIENT_SECRET,
+            "GOOGLE_REDIRECT_URI": cls.GOOGLE_REDIRECT_URI,
         }
 
         missing_vars = [var for var, value in required_vars.items() if not value]
@@ -103,6 +105,4 @@ def get_config() -> Dict[str, Any]:
 
     return config_class
 
-
-# For backwards compatibility
 Config = get_config()
