@@ -10,10 +10,8 @@ class UserController:
     def signup(self, name: str, phone_number: str, password: str, google_sheets_id: str) -> Response:
         is_success, message, id = self.user_service.signup(name, phone_number, password, google_sheets_id)
         if is_success:
-            # Remove any quotes from config values
             client_id = current_app.config["GOOGLE_CLIENT_ID"]
             redirect_uri = current_app.config["GOOGLE_REDIRECT_URI"]
-            # Quote parameters properly
             redirect_uri = quote(redirect_uri, safe="")
             scope = quote("https://www.googleapis.com/auth/spreadsheets", safe="")
             state = quote(f'user_id:{id}', safe="")

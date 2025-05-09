@@ -39,7 +39,7 @@ class GoogleController:
             }
 
             current_app.logger.debug(f"Making token request to: {token_url}")
-            # Log request data without sensitive info
+
             safe_log_data = {**request_data, 
                            "client_id": f"{client_id[:8]}...", 
                            "client_secret": "***",
