@@ -4,7 +4,6 @@ from src.config.settings import Config
 from src.routes import whatsapp_bp, google_bp, user_bp
 import logging
 import os
-import debugpy
 
 load_dotenv()
 

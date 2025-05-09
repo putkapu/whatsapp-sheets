@@ -7,8 +7,10 @@ install: venv
 run-dev:
 	FLASK_ENV=development FLASK_APP=app.py . venv/bin/activate && flask run
 
-migrate:
-	. venv/bin/activate && alembic upgrade head
+db-reset:
+	. venv/bin/activate
+	alembic downgrade base
+	alembic upgrade head
 
 clean:
 	rm -rf venv __pycache__ *.pyc *.pyo whatssheet.db 
@@ -28,14 +30,17 @@ pylint:
 docker-build:
 	docker build -t whatssheet:latest .
 
-docker-run:
-	docker run -d --env-file .env -p $(shell grep -E '^PORT=' .env | cut -d '=' -f2):$(shell grep -E '^PORT=' .env | cut -d '=' -f2) --name whatssheet whatssheet:latest
-
 docker-clean:
 	docker stop whatssheet && docker rm whatssheet
 
-docker-migrate:
+docker-db-reset:
+	docker exec -it whatssheet alembic downgrade base
 	docker exec -it whatssheet alembic upgrade head
+
+docker-run:
+	docker run -d --env-file .env -p $(shell grep -E '^PORT=' .env | cut -d '=' -f2):$(shell grep -E '^PORT=' .env | cut -d '=' -f2) --name whatssheet whatssheet:latest
+	sleep 5  # Wait for container to be ready
+	make docker-db-reset
 
 ngrok-start:
 	ngrok http $(shell grep -E '^PORT=' .env | cut -d '=' -f2) > /dev/null 2>&1 & echo $$! > ngrok.pid && sleep 2 && echo "ngrok started with PID $$(cat ngrok.pid)" && curl -s http://127.0.0.1:4040/api/tunnels | grep -o '"public_url":"[^"]*"' | head -n 1 | sed 's/"public_url":"//;s/"//'
