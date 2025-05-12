@@ -55,6 +55,7 @@ class GoogleSheetsService:
         try:
             if not self.header_exists():
                 self.write_header()
+                self.set_date_format()
 
             values = [[data["date"], data["product"], data["category"], data["price"]]]
 
@@ -125,3 +126,30 @@ class GoogleSheetsService:
         except HttpError as error:
             current_app.logger.error(f"Error getting expenses: {error}")
             return []
+
+    def set_date_format(self):
+        requests = [
+            {
+                "repeatCell": {
+                    "range": {
+                        "sheetId": 0,  # Change if not the first/default sheet
+                        "startColumnIndex": 0,
+                        "endColumnIndex": 1
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "numberFormat": {
+                                "type": "DATE",
+                                "pattern": "yyyy-mm-dd"
+                            }
+                        }
+                    },
+                    "fields": "userEnteredFormat.numberFormat"
+                }
+            }
+        ]
+        body = {"requests": requests}
+        self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id,
+            body=body
+        ).execute()
