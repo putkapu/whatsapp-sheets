@@ -59,7 +59,7 @@ class UserService:
                 if 'SSL SYSCALL error: EOF detected' in str(e):
                     self.logger.error(f"Database connection lost (attempt {attempt+1}): {str(e)}")
                     if attempt < MAX_RETRIES - 1:
-                        time.sleep(1)
+                        time.sleep(5)
                         continue
                     return False, "Erro de conexão com o banco de dados. Tente novamente.", None
                 self.logger.error(f"Error validating user: {str(e)}")
