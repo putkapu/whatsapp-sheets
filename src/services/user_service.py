@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 from psycopg2 import OperationalError
 import time
 
-MAX_RETRIES = 3
+MAX_RETRIES = 5
 class UserService:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class UserService:
                 if 'SSL SYSCALL error: EOF detected' in str(e):
                     self.logger.error(f"Database connection lost (attempt {attempt+1}): {str(e)}")
                     if attempt < MAX_RETRIES - 1:
-                        time.sleep(5)
+                        time.sleep(10)
                         continue
                     return False, "Erro de conexão com o banco de dados. Tente novamente.", None
                 self.logger.error(f"Error validating user: {str(e)}")
