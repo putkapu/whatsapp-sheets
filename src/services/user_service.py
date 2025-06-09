@@ -4,6 +4,15 @@ from typing import Tuple, Optional
 import logging
 from werkzeug.security import generate_password_hash
 from psycopg2 import OperationalError
+from sqlalchemy.exc import (
+    DatabaseError, 
+    InterfaceError, 
+    InternalError, 
+    ProgrammingError,
+    DisconnectionError,
+    InvalidatePoolError,
+    TimeoutError
+)
 import time
 
 MAX_RETRIES = 5
@@ -55,14 +64,14 @@ class UserService:
                         )
 
                     return True, "", user
-            except OperationalError as e:
-                if 'SSL SYSCALL error: EOF detected' in str(e):
-                    self.logger.error(f"Database connection lost (attempt {attempt+1}): {str(e)}")
-                    if attempt < MAX_RETRIES - 1:
-                        time.sleep(10)
-                        continue
-                    return False, "Erro de conexão com o banco de dados. Tente novamente.", None
-                self.logger.error(f"Error validating user: {str(e)}")
+            except (OperationalError, DisconnectionError, InvalidatePoolError, TimeoutError, InterfaceError) as e:
+                self.logger.error(f"Database connection error (attempt {attempt+1}): {str(e)}")
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(5)
+                    continue
+                return False, "Erro de conexão com o banco de dados. Tente novamente.", None
+            except (DatabaseError, InternalError, ProgrammingError) as e:
+                self.logger.error(f"Database error: {str(e)}")
                 return False, "Erro ao validar usuário.", None
             except Exception as e:
                 self.logger.error(f"Error validating user: {str(e)}")
@@ -84,6 +93,10 @@ class UserService:
                 db.commit()
                 db.refresh(user)
                 return True, "Usuário criado com sucesso.", user
+        except (OperationalError, DatabaseError, InterfaceError, InternalError, 
+                ProgrammingError, DisconnectionError, InvalidatePoolError, TimeoutError) as e:
+            self.logger.error(f"Database error creating user: {str(e)}")
+            return False, "Erro de conexão com o banco de dados. Tente novamente.", None
         except Exception as e:
             self.logger.error(f"Error creating user: {str(e)}")
             return False, "Erro ao criar usuário.", None
@@ -98,6 +111,10 @@ class UserService:
                 db.commit()
                 db.refresh(user)
                 return True, "Token do Google Sheets atualizado com sucesso.", user
+        except (OperationalError, DatabaseError, InterfaceError, InternalError, 
+                ProgrammingError, DisconnectionError, InvalidatePoolError, TimeoutError) as e:
+            self.logger.error(f"Database error updating Google token: {str(e)}")
+            return False, "Erro de conexão com o banco de dados. Tente novamente.", None
         except Exception as e:
             self.logger.error(f"Error updating Google Sheets token: {str(e)}")
             return False, "Erro ao atualizar token do Google Sheets.", None
