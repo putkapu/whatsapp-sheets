@@ -25,14 +25,35 @@ class UserService:
     def _get_db(self):
         return SessionLocal()
 
-    def _execute_with_retry(self, operation, operation_name: str):
+    def _execute_with_retry(self, operation, operation_name: str, validate_result=None):
         """
         Execute database operation with retry logic for connection issues.
         Uses exponential backoff with jitter to handle cold database starts.
+        
+        Args:
+            operation: The database operation to execute
+            operation_name: Name for logging purposes
+            validate_result: Optional function to validate if result is valid (should return True if valid)
         """
+        last_result = None
         for attempt in range(MAX_RETRIES):
             try:
-                return operation()
+                result = operation()
+                last_result = result           
+                if validate_result and not validate_result(result):
+                    if attempt < MAX_RETRIES - 1:
+                        self.logger.warning(f"Invalid result from {operation_name} (attempt {attempt+1}), retrying...")
+                        base_delay = 2 ** attempt
+                        jitter = random.uniform(0.5, 1.5)
+                        delay = base_delay * jitter
+                        self.logger.info(f"Retrying {operation_name} in {delay:.1f} seconds...")
+                        time.sleep(delay)
+                        continue
+                    else:
+                        self.logger.error(f"Max retries reached for {operation_name} with invalid results")
+                        return result
+                
+                return result
             except (OperationalError, DisconnectionError, InvalidatePoolError, TimeoutError, InterfaceError) as e:
                 self.logger.warning(f"Database connection error in {operation_name} (attempt {attempt+1}): {str(e)}")
                 if attempt < MAX_RETRIES - 1:
@@ -51,13 +72,16 @@ class UserService:
             except Exception as e:
                 self.logger.error(f"Unexpected error in {operation_name}: {str(e)}")
                 raise
+        
+        return last_result
 
-    def validate_user(self, phone_number: str) -> Tuple[bool, str, Optional[User]]:
+    def validate_user(self, phone_number: str, expect_user_exists: bool = False) -> Tuple[bool, str, Optional[User]]:
         """
         Validate if a user exists, is active, and has valid Google Sheets credentials.
 
         Args:
             phone_number: User's phone number
+            expect_user_exists: If True, will retry if user is None (useful for known existing users)
 
         Returns:
             Tuple containing:
@@ -92,8 +116,18 @@ class UserService:
 
                 return True, "", user
 
+        def _validate_result(result):
+            """Validate that we got a proper result from the database"""
+            if expect_user_exists and result[2] is None:
+                # If we expect a user to exist but got None, this might be a cold DB issue
+                self.logger.warning(f"Expected user {phone_number} to exist but got None - possible cold database")
+                return False
+            return True
+
+        result_validator = _validate_result if expect_user_exists else None
+
         try:
-            return self._execute_with_retry(_validate_operation, "validate_user")
+            return self._execute_with_retry(_validate_operation, "validate_user", result_validator)
         except (OperationalError, DisconnectionError, InvalidatePoolError, TimeoutError, InterfaceError):
             return False, "Erro de conexão com o banco de dados. Tente novamente.", None
         except (DatabaseError, InternalError, ProgrammingError):

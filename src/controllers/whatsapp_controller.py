@@ -17,9 +17,7 @@ class WhatsAppController:
         current_app.logger.info(f"Received webhook request from {cellphone_number}")
         current_app.logger.debug(f"Message content: {incoming}")
 
-        is_valid, error_message, user = self.user_service.validate_user(
-            cellphone_number
-        )
+        is_valid, error_message, user = self.user_service.validate_user(cellphone_number)
         if not is_valid:
             current_app.logger.warning(f"Invalid user attempt from {cellphone_number}: {error_message}")
             twiml, mimetype = self.view.format_twiml_response(error_message)
