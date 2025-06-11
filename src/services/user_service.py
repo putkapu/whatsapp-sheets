@@ -3,7 +3,6 @@ from src.models.user import User
 from typing import Tuple, Optional
 import logging
 from werkzeug.security import generate_password_hash
-from psycopg2 import OperationalError
 from sqlalchemy.exc import (
     DatabaseError, 
     InterfaceError, 
@@ -11,7 +10,8 @@ from sqlalchemy.exc import (
     ProgrammingError,
     DisconnectionError,
     InvalidatePoolError,
-    TimeoutError
+    TimeoutError,
+    OperationalError
 )
 import time
 import random
